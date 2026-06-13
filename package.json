@@ -1,0 +1,19 @@
+{
+  "name": "homa",
+  "version": "1.0.0",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsup"
+  },
+  "keywords": [],
+  "author": "parsamoloudie",
+  "license": "MIT",
+  "description": "",
+  "devDependencies": {
+    "@types/node": "^25.9.3",
+    "tsup": "^8.5.1",
+    "typescript": "^6.0.3"
+  }
+}

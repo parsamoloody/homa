@@ -1,0 +1,5 @@
+dist
+node_modules
+src/server.ts
+.env
+.env*
