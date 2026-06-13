@@ -14,7 +14,8 @@
     "strict": true,
     "outDir": "dist",
     "paths": {
-      "@core/*": ["./src/core/*"]
+      "@core/*": ["./src/core/*"],
+      "@middleware/*": ["./src/middleware/*"]
     },
   },
   "include": ["src"],
