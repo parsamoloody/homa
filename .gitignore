@@ -3,3 +3,4 @@ node_modules
 src/server.ts
 .env
 .env*
+src/server.ts
