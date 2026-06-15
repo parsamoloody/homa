@@ -116,6 +116,7 @@ async function parseBody(req: Request, options: BodyParserOptions): Promise<void
 
     const cleanup = () => {
       _chunks = [];
+      _body = '';
     };
 
     req.on('data', (chunk: Buffer) => {
