@@ -16,10 +16,10 @@ Unlike bloated frameworks that come with unnecessary abstractions, Homa stays cl
 - **Performance matters** - Optimized internals with minimal overhead
 
 ### Why Homa?
-- Learning Node.js fundamentals
 - Building lightweight HTTP servers
 - Performance-critical applications
 - Projects where dependency minimization is important
+- Easy to use
 
 ### Quick Start
 
@@ -28,7 +28,7 @@ import homa ,{ Request, Response } from 'homa';
 
 // Basic route
 homa.get('/', (req: Request, res: Response) => {
-  res.send('Hello from Homa! 🚀');
+  res.send('Hello from Homa!');
 });
 
 // Route with parameters
@@ -59,4 +59,5 @@ homa.listen(3000, () => {
 #### Want to Contribute to Homa?
 I love your help making Homa better! Whether you're fixing bugs, adding features, improving docs, or sharing ideas - every contribution matters.
 <hr/>
+
 Built with ❤️ for the Node.js community
