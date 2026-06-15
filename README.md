@@ -1,4 +1,8 @@
-<center><h1>HOMA</h1></center>
+<p align="center">
+  <a href="https://github.com/parsamoloody/homa" target="_blank"><img src="https://raw.githubusercontent.com/stringperson/565d70656ff8egr54eg5t3562899r5t5b48eger/15657490dccf161016528e1bb903dedde38d61bc/homa-no-bg-wht.png" width="120" alt="Homa Logo" /></a>
+</p>
+
+<h1 align="center">HOMA</h1>
 
 <center>Lightweight, fast, simple and modern <b>Node.js web framework</b> with native TypeScript support</center>
 
