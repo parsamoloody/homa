@@ -110,45 +110,45 @@ export function bodyParser(options: BodyParserOptions = {}) {
 // Core parsing logic
 async function parseBody(req: Request, options: BodyParserOptions): Promise<void> {
   return new Promise((resolve, reject) => {
-    let body = '';
-    let chunks: Buffer[] = [];
-    let totalSize = 0;
-    
+    let _body = '';
+    let _chunks: Buffer[] = [];
+    let _totalSize = 0;
+
     req.on('data', (chunk: Buffer) => {
-      totalSize += chunk.length;
+      _totalSize += chunk.length;
       
-      if (options.limit && totalSize > options.limit) {
+      if (options.limit && _totalSize > options.limit) {
         reject(new Error('Body size exceeds limit'));
         return;
       }
       
-      chunks.push(chunk);
+      _chunks.push(chunk);
     });
     
     req.on('end', () => {
-      body = Buffer.concat(chunks).toString();
+      _body = Buffer.concat(_chunks).toString();
       
       const contentType = req.headers['content-type'] || '';
       
       // Parse based on content type
       if (contentType.includes('application/json')) {
         try {
-          req.body = body ? JSON.parse(body) : {};
+          req.body = _body ? JSON.parse(_body) : {};
         } catch (error) {
           req.body = {};
           // Don't throw, just set empty body
         }
       } 
       else if (contentType.includes('application/x-www-form-urlencoded')) {
-        req.body = parseUrlEncoded(body);
+        req.body = parseUrlEncoded(_body);
       }
       else if (contentType.includes('text/plain')) {
-        req.body = body;
+        req.body = _body;
       }
       else {
         // For other types, store raw body as buffer
-        req.rawBody = Buffer.concat(chunks);
-        req.body = body;
+        req.rawBody = Buffer.concat(_chunks);
+        req.body = _body;
       }
       
       resolve();
