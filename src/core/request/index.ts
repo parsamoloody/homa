@@ -1,14 +1,11 @@
-import http, { IncomingMessageEventMap } from 'http';
-import url from 'url';
+import http from 'http';
 
 export class Request {
   public params: Record<string, string> = {};
   public query: Record<string, string> = {};
   public body: any = null;
-
-  constructor(private req: http.IncomingMessage) {
-    this.parseQuery();
-  }
+  private _rawBody: Buffer | null = null;
+  constructor(private req: http.IncomingMessage) { }
 
   get method(): string | undefined {
     return this.req.method;
@@ -22,32 +19,15 @@ export class Request {
     return this.req.headers;
   }
 
-  on(event: string, listener: (...args: any[]) => void) {
-    this.req.on(event, listener);
-  }
-  private parseQuery() {
-    if (this.req.url) {
-      const parsed = url.parse(this.req.url, true);
-      this.query = parsed.query as Record<string, string>;
-    }
+  get rawBody(): Buffer | null {
+    return this._rawBody;
   }
 
-  async parseBody(): Promise<void> {
-    return new Promise((resolve, reject) => {
-      let body = '';
-      this.req.on('data', chunk => {
-        body += chunk.toString();
-      });
-      this.req.on('end', () => {
-        try {
-          this.body = body;
-          resolve();
-        } catch (e) {
-          this.body = {};
-          resolve();
-        }
-      });
-      this.req.on('error', reject);
-    });
+  set rawBody(value: Buffer | null) {
+    this._rawBody = value;
+  }
+
+  on(event: string, listener: (...args: any[]) => void) {
+    this.req.on(event, listener);
   }
 }
