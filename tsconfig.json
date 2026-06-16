@@ -15,7 +15,8 @@
     "outDir": "dist",
     "paths": {
       "@core/*": ["./src/core/*"],
-      "@middleware/*": ["./src/middleware/*"]
+      "@middleware/*": ["./src/middleware/*"],
+      "@homa": ["./src"]
     },
   },
   "include": ["src"],

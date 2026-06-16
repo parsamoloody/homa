@@ -3,7 +3,7 @@ import { Request } from '@core/request';
 import { Response } from '@core/response';
 import { Router } from '@core/router';
 
-class Application {
+export class HomaApp {
   private router: Router;
   private middlewares: Array<(req: Request, res: Response, next: () => void) => void> = [];
 
@@ -51,6 +51,3 @@ class Application {
     await next();
   }
 }
-
-const homa = new Application;
-export default homa;
