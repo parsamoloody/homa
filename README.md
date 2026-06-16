@@ -24,34 +24,156 @@ Unlike bloated frameworks that come with unnecessary abstractions, Homa stays cl
 ### Quick Start
 
 ```js
-import homa ,{ Request, Response } from 'homa';
+import { jsonParser } from "@middleware/bodyParser";
+import HomaApp from "@homa";
 
-// Basic route
-homa.get('/', (req: Request, res: Response) => {
-  res.send('Hello from Homa!');
+const app = new HomaApp();
+
+app.use(jsonParser({ limit: 2 * 1024 * 1024 }));
+
+app.get('/ping', (req, res) => {
+    res.json({
+        status: 'OK',
+        timestamp: new Date().toISOString(),
+        message: 'ping'
+    });
 });
 
-// Route with parameters
-homa.get('/users/:id', (req: Request, res: Response) => {
-  const userId = req.params.id;
-  res.json({ userId, message: 'User found' });
+// GET with query params
+app.get('/api/users', (req, res) => {
+    res.json({
+        users: [
+            { id: 1, name: 'John Doe' },
+            { id: 2, name: 'Jane Smith' }
+        ],
+        query: req.query,
+        timestamp: new Date().toISOString()
+    });
 });
 
-// JSON body parsing
-homa.post('/api/data', (req: Request, res: Response) => {
-  const data = req.body; // Automatically parsed JSON
-  res.status(201).json({ received: data });
+// GET with route params
+app.get('/api/users/:id', (req, res) => {
+    const userId = parseInt(req.params.id);
+
+    if (isNaN(userId)) {
+        return res.status(400).json({ error: 'Invalid user ID' });
+    }
+
+    res.json({
+        id: userId,
+        name: `User ${userId}`,
+        email: `user${userId}@example.com`,
+        params: req.params
+    });
 });
 
-// Middleware example
-homa.use((req: Request, res: Response, next: Function) => {
-  console.log(`${req.method} ${req.url} - ${new Date().toISOString()}`);
-  next();
+// POST - Create user
+app.post('/api/users', async (req, res) => {
+    try {
+        const userData = req.body;
+
+        // Validate
+        if (!userData.name || !userData.email) {
+            return res.status(400).json({
+                error: 'Name and email are required'
+            });
+        }
+
+        // Simulate saving
+        const newUser = {
+            id: Date.now(),
+            ...userData,
+            createdAt: new Date().toISOString()
+        };
+
+        res.status(201).json({
+            message: 'User created successfully',
+            user: newUser
+        });
+    } catch (error) {
+        res.status(500).json({ error: 'Internal server error' + error });
+    }
+});
+
+// PUT - Update user
+app.put('/api/users/:id', async (req, res) => {
+    const userId = parseInt(req.params.id);
+    const updates = req.body;
+
+    if (!updates.name && !updates.email) {
+        return res.status(400).json({
+            error: 'At least one field (name or email) is required'
+        });
+    }
+
+    res.json({
+        message: `User ${userId} updated successfully`,
+        updates: updates,
+        params: req.params
+    });
+});
+
+// DELETE - Delete user
+app.delete('/api/users/:id', (req, res) => {
+    const userId = parseInt(req.params.id);
+
+    res.json({
+        message: `User ${userId} deleted successfully`,
+        deletedAt: new Date().toISOString()
+    });
+});
+
+// POST with urlencoded data
+app.post('/api/login', async (req, res) => {
+    await req.body; // If not using bodyParser middleware
+
+    const { username, password } = req.body;
+
+    if (!username || !password) {
+        return res.status(400).json({
+            error: 'Username and password required'
+        });
+    }
+
+    if (username === 'admin' && password === 'password123') {
+        res.json({
+            success: true,
+            token: 'fake-jwt-token-12345',
+            user: { id: 1, username: 'admin' }
+        });
+    } else {
+        res.status(401).json({
+            error: 'Invalid credentials'
+        });
+    }
+});
+
+// File upload endpoint (multipart)
+app.post('/api/upload', (req, res) => {
+    // Handle file upload (simplified)
+    res.json({
+        message: 'File uploaded successfully',
+        body: req.body,
+        headers: req.headers['content-type']
+    });
+});
+
+// Error handling demo
+app.get('/api/error', (req, res) => {
+    try {
+        throw new Error('Something went wrong');
+    } catch (error: any) {
+        res.status(500).json({
+            error: 'Internal server error',
+            message: error.message
+        });
+    }
 });
 
 // Start server
-homa.listen(3000, () => {
-  console.log("Server started on port:3000");
+const PORT = 3000;
+app.listen(PORT, () => {
+    console.log(` Test server running on http://localhost:${PORT}`);
 });
 ```
 <hr/>
