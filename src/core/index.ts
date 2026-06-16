@@ -7,22 +7,75 @@ export class HomaApp {
   private router: Router;
   private middlewares: Array<(req: Request, res: Response, next: () => void) => void> = [];
 
+  /**
+   * Constructor initializes a new Router instance
+   */
   constructor() {
     this.router = new Router();
   }
 
+  /**
+   * Register a middleware function that will be executed for every request
+   * Middleware can modify request/response objects or end the response early
+   * @param middleware - Function that receives req, res, and next callback
+   */
   use(middleware: (req: Request, res: Response, next: () => void) => void) {
     this.middlewares.push(middleware);
   }
 
+  /**
+   * Register a GET route handler
+   * @param path - URL path pattern (supports :params)
+   * @param handler - Function to handle matching GET requests
+   */
   get(path: string, handler: (req: Request, res: Response) => void) {
     this.router.addRoute('GET', path, handler);
   }
 
+  /**
+   * Register a POST route handler
+   * @param path - URL path pattern (supports :params)
+   * @param handler - Function to handle matching POST requests
+   */
   post(path: string, handler: (req: Request, res: Response) => void) {
     this.router.addRoute('POST', path, handler);
   }
 
+  /**
+   * Register a PUT route handler
+   * @param path - URL path pattern (supports :params)
+   * @param handler - Function to handle matching PUT requests
+   */
+  put(path: string, handler: (req: Request, res: Response) => void) {
+    this.router.addRoute('PUT', path, handler);
+  }
+
+  /**
+   * Register a PATCH route handler
+   * Note: Method name is 'path' which is a typo (should be 'patch')
+   * @param path - URL path pattern (supports :params)
+   * @param handler - Function to handle matching PATCH requests
+   */
+  path(path: string, handler: (req: Request, res: Response) => void) {
+    this.router.addRoute('PATCH', path, handler);
+  }
+
+  /**
+   * Register a DELETE route handler
+   * @param path - URL path pattern (supports :params)
+   * @param handler - Function to handle matching DELETE requests
+   */
+  delete(path: string, handler: (req: Request, res: Response) => void) {
+    this.router.addRoute('DELETE', path, handler);
+  }
+
+  /**
+   * Start the HTTP server on the specified port
+   * Creates a server instance, processes every request through middleware chain,
+   * then routes to the appropriate handler
+   * @param port - Port number to listen on
+   * @param callback - Optional callback executed when server starts listening
+   */
   listen(port: number, callback?: () => void) {
     const server = http.createServer(async (req, res) => {
       const request = new Request(req);
@@ -36,9 +89,20 @@ export class HomaApp {
     server.listen(port, callback);
   }
 
+  /**
+   * Execute all registered middleware functions in sequence
+   * Each middleware calls next() to proceed to the next middleware or final handler
+   * @param req - Request object passed through middleware chain
+   * @param res - Response object passed through middleware chain
+   * @param finalHandler - Function to execute after all middleware complete
+   */
   private async runMiddlewares(req: Request, res: Response, finalHandler: () => void) {
     let index = 0;
     
+    /**
+     * Recursive next function that processes middleware one by one
+     * Each middleware must call next() to continue the chain
+     */
     const next = async () => {
       if (index < this.middlewares.length) {
         const middleware = this.middlewares[index++];
@@ -48,6 +112,7 @@ export class HomaApp {
       }
     };
     
+    // Start the middleware chain execution
     await next();
   }
 }
