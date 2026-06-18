@@ -132,7 +132,7 @@ With the example above, a route registered as `/users` will be matched as `/api/
 - Leading and trailing slashes are automatically stripped, so you don't need to worry about double slashes (`/api/` or `['api', '']` are both handled safely)
 
 
-### Middlewa
+## Middleware
 
 These body parsing middleware automatically extract and parse incoming request data (JSON, URL-encoded, multipart, or plain text) based on the Content-Type header, then attach the parsed data to req.body for easy access in route handlers. They also enforce size limits to prevent large payload attacks and handle parsing errors gracefully.
 
