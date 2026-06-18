@@ -77,10 +77,6 @@ export class HomaApp {
     this.router.addRoute('DELETE', path, handler);
   }
 
-  // globalPrefix(prefix: string | string[]) {
-  //   this.router.globalPrefix = prefix
-  // }
-
   /**
    * Start the HTTP server on the specified port
    * Creates a server instance, processes every request through middleware chain,
