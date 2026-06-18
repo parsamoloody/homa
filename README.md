@@ -15,16 +15,10 @@ Unlike bloated frameworks that come with unnecessary abstractions, Homa stays cl
 - **Intuitive API** - Learn once, use everywhere with consistent patterns
 - **Performance matters** - Optimized internals with minimal overhead
 
-### Why Homa?
-- Building lightweight HTTP servers
-- Performance-critical applications
-- Projects where dependency minimization is important
-- Easy to use
-
 ### Quick Start
 
 ```js
-import { jsonParser } from "@middleware/bodyParser";
+import { jsonParser } from "@middleware";
 import HomaApp from "@homa";
 
 const app = new HomaApp();
@@ -123,7 +117,6 @@ app.listen(PORT, () => {
 
 You can set a prefix that automatically applies to all registered routes, so you don't need to repeat it on every route definition.
 
-### Usage
 
 ```ts
 app.setGlobalPrefix('api');
@@ -137,3 +130,19 @@ With the example above, a route registered as `/users` will be matched as `/api/
 
 - Accepts either a `string` or a `string[]` of path segments (joined with `/`)
 - Leading and trailing slashes are automatically stripped, so you don't need to worry about double slashes (`/api/` or `['api', '']` are both handled safely)
+
+
+### Middlewa
+
+These body parsing middleware automatically extract and parse incoming request data (JSON, URL-encoded, multipart, or plain text) based on the Content-Type header, then attach the parsed data to req.body for easy access in route handlers. They also enforce size limits to prevent large payload attacks and handle parsing errors gracefully.
+
+### Body Parsing Middleware
+
+The framework provides built-in middleware to parse incoming request bodies. Middleware is registered using `app.use()` and executes in the order they are added.
+
+```typescript
+// Register middleware - order matters! They execute in sequence
+app.use(jsonParser({ limit: 1024 * 1024 })); // Parse JSON bodies up to 1MB
+app.use(urlencodedParser()); // Parse URL-encoded form data
+```
+
