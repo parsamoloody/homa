@@ -7,18 +7,24 @@ const defaultOptions: BodyParserOptions = {
   type: ['application/json', 'application/x-www-form-urlencoded']
 };
 
-// JSON Parser middleware
+/**
+ * Creates a middleware that parses JSON request bodies
+ * 
+ * @param options - Configuration options for the JSON parser
+ * @param options.limit - Maximum size of the request body in bytes (default: 1MB)
+ * @param options.type - Content-Types to parse (default: ['application/json', 'application/x-www-form-urlencoded'])
+ * @returns An async middleware function that parses JSON and attaches it to req.body
+ */
 export function jsonParser(options: BodyParserOptions = {}) {
   const opts = { ...defaultOptions, ...options };
 
   return async (req: Request, res: Response, next: NextFunction) => {
-    // Check if content type is JSON
+
     const contentType = req.headers['content-type'];
     if (!contentType?.includes('application/json')) {
       return next();
     }
 
-    // Check content length
     const contentLength = parseInt(req.headers['content-length'] || '0');
     if (contentLength > opts.limit!) {
       res.status(413).json({ error: 'Request entity too large' });
@@ -30,7 +36,14 @@ export function jsonParser(options: BodyParserOptions = {}) {
   };
 }
 
-// URL-Encoded parser middleware
+/**
+ * Creates a middleware that parses URL-encoded request bodies
+ * 
+ * @param options - Configuration options for the URL-encoded parser
+ * @param options.limit - Maximum size of the request body in bytes (default: 1MB)
+ * @param options.type - Content-Types to parse (default: ['application/json', 'application/x-www-form-urlencoded'])
+ * @returns An async middleware function that parses URL-encoded data and attaches it to req.body
+ */
 export function urlencodedParser(options: BodyParserOptions = {}) {
   const opts = { ...defaultOptions, ...options };
 
@@ -51,6 +64,14 @@ export function urlencodedParser(options: BodyParserOptions = {}) {
   };
 }
 
+/**
+ * Creates a middleware that parses plain text request bodies
+ * 
+ * @param options - Configuration options for the text parser
+ * @param options.limit - Maximum size of the request body in bytes (default: 1MB)
+ * @param options.type - Content-Types to parse (default: ['application/json', 'application/x-www-form-urlencoded'])
+ * @returns An async middleware function that parses text data and attaches it to req.body
+ */
 // Text parser middleware
 export function textParser(options: BodyParserOptions = {}) {
   const opts = { ...defaultOptions, ...options };
@@ -88,14 +109,21 @@ export function rawParser(options: BodyParserOptions = {}) {
   };
 }
 
+/**
+ * Creates a middleware that automatically detects and parses request bodies based on Content-Type header
+ * Supports JSON, URL-encoded, and plain text formats
+ * 
+ * @param options - Configuration options for the body parser
+ * @param options.limit - Maximum size of the request body in bytes (default: 1MB)
+ * @param options.type - Content-Types to parse (default: ['application/json', 'application/x-www-form-urlencoded'])
+ * @returns An async middleware function that auto-detects content type and parses the body accordingly
+ */
 // Combined body parser (tries to detect based on content-type)
 export function bodyParser(options: BodyParserOptions = {}) {
   const opts = { ...defaultOptions, ...options };
 
   return async (req: Request, res: Response, next: NextFunction) => {
-    const contentType = req.headers['content-type'] || '';
 
-    // Check content length
     const contentLength = parseInt(req.headers['content-length'] || '0');
     if (contentLength > opts.limit!) {
       res.status(413).json({ error: 'Request entity too large' });
@@ -179,13 +207,12 @@ function parseUrlEncoded(data: string): Record<string, any> {
       const decodedKey = decodeURIComponent(key);
       const decodedValue = value ? decodeURIComponent(value.replace(/\+/g, ' ')) : '';
 
-      // Handle array syntax (key[])
       if (decodedKey.endsWith('[]')) {
         const arrayKey = decodedKey.slice(0, -2);
         if (!result[arrayKey]) result[arrayKey] = [];
         result[arrayKey].push(decodedValue);
       }
-      // Handle nested objects (key[subkey])
+
       else if (decodedKey.includes('[')) {
         const match = decodedKey.match(/(\w+)\[(\w+)\]/);
         if (match) {
@@ -203,6 +230,17 @@ function parseUrlEncoded(data: string): Record<string, any> {
   return result;
 }
 
+/**
+ * Creates a middleware that parses multipart/form-data request bodies
+ * Supports file uploads and form fields with configurable limits
+ * 
+ * @param options - Configuration options for the multipart parser
+ * @param options.limit - Maximum size of the request body in bytes (default: 1MB)
+ * @param options.type - Content-Types to parse (default: ['application/json', 'application/x-www-form-urlencoded'])
+ * @param options.fields - Maximum number of form fields allowed (default: 20)
+ * @param options.files - Maximum number of files allowed (default: 5)
+ * @returns An async middleware function that parses multipart data and attaches it to req.body
+ */
 // Multipart/form-data parser (basic version)
 export function multipartParser(options: BodyParserOptions & {
   fields?: number; // Max number of fields
@@ -240,7 +278,6 @@ async function parseMultipart(req: Request, contentType: string, options: BodyPa
       return;
     }
 
-    let data = '';
     let chunks: Buffer[] = [];
 
     req.on('data', (chunk: Buffer) => {
@@ -285,6 +322,15 @@ function getBoundary(contentType: string): string | null {
   return match ? match[1] : null;
 }
 
+/**
+ * Creates a convenience middleware that automatically selects and applies
+ * the appropriate body parser based on the request's Content-Type header
+ * 
+ * Supports JSON, URL-encoded, multipart/form-data, and plain text formats
+ * Falls back to text parser if no specific content type is detected
+ * 
+ * @returns An async middleware function that applies the appropriate parser
+ */
 // Convenience middleware that combines common parsers
 export function defaultBodyParser() {
   return async (req: Request, res: Response, next: NextFunction) => {
