@@ -39,18 +39,6 @@ app.get('/ping', (req, res) => {
     });
 });
 
-// GET with query params
-app.get('/api/users', (req, res) => {
-    res.json({
-        users: [
-            { id: 1, name: 'John Doe' },
-            { id: 2, name: 'Jane Smith' }
-        ],
-        query: req.query,
-        timestamp: new Date().toISOString()
-    });
-});
-
 // GET with route params
 app.get('/api/users/:id', (req, res) => {
     const userId = parseInt(req.params.id);
@@ -123,53 +111,6 @@ app.delete('/api/users/:id', (req, res) => {
     });
 });
 
-// POST with urlencoded data
-app.post('/api/login', async (req, res) => {
-    await req.body; // If not using bodyParser middleware
-
-    const { username, password } = req.body;
-
-    if (!username || !password) {
-        return res.status(400).json({
-            error: 'Username and password required'
-        });
-    }
-
-    if (username === 'admin' && password === 'password123') {
-        res.json({
-            success: true,
-            token: 'fake-jwt-token-12345',
-            user: { id: 1, username: 'admin' }
-        });
-    } else {
-        res.status(401).json({
-            error: 'Invalid credentials'
-        });
-    }
-});
-
-// File upload endpoint (multipart)
-app.post('/api/upload', (req, res) => {
-    // Handle file upload (simplified)
-    res.json({
-        message: 'File uploaded successfully',
-        body: req.body,
-        headers: req.headers['content-type']
-    });
-});
-
-// Error handling demo
-app.get('/api/error', (req, res) => {
-    try {
-        throw new Error('Something went wrong');
-    } catch (error: any) {
-        res.status(500).json({
-            error: 'Internal server error',
-            message: error.message
-        });
-    }
-});
-
 // Start server
 const PORT = 3000;
 app.listen(PORT, () => {
@@ -178,8 +119,21 @@ app.listen(PORT, () => {
 ```
 <hr/>
 
-#### Want to Contribute to Homa?
-I love your help making Homa better! Whether you're fixing bugs, adding features, improving docs, or sharing ideas - every contribution matters.
-<hr/>
+## Global Route Prefix
 
-Built with ❤️ for the Node.js community
+You can set a prefix that automatically applies to all registered routes, so you don't need to repeat it on every route definition.
+
+### Usage
+
+```ts
+app.setGlobalPrefix('api');
+// or with multiple segments
+app.setGlobalPrefix(['api', 'v1']);
+```
+
+With the example above, a route registered as `/users` will be matched as `/api/v1/users`.
+
+### Notes
+
+- Accepts either a `string` or a `string[]` of path segments (joined with `/`)
+- Leading and trailing slashes are automatically stripped, so you don't need to worry about double slashes (`/api/` or `['api', '']` are both handled safely)

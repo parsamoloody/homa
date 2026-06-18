@@ -7,11 +7,19 @@ export class HomaApp {
   private router: Router;
   private middlewares: Array<(req: Request, res: Response, next: () => void) => void> = [];
 
+  /**sets the global prefix applied to all routes */
+  setGlobalPrefix!: Router['setGlobalPrefix'];
+
   /**
    * Constructor initializes a new Router instance
    */
   constructor() {
+    
     this.router = new Router();
+    
+    for (const method of Router.publicMethods) {
+      (this as any)[method] = (this.router[method] as Function).bind(this.router);
+    }
   }
 
   /**
@@ -69,6 +77,10 @@ export class HomaApp {
     this.router.addRoute('DELETE', path, handler);
   }
 
+  // globalPrefix(prefix: string | string[]) {
+  //   this.router.globalPrefix = prefix
+  // }
+
   /**
    * Start the HTTP server on the specified port
    * Creates a server instance, processes every request through middleware chain,
@@ -80,12 +92,12 @@ export class HomaApp {
     const server = http.createServer(async (req, res) => {
       const request = new Request(req);
       const response = new Response(res);
-      
+
       await this.runMiddlewares(request, response, () => {
         this.router.handle(request, response);
       });
     });
-    
+
     server.listen(port, callback);
   }
 
@@ -98,7 +110,7 @@ export class HomaApp {
    */
   private async runMiddlewares(req: Request, res: Response, finalHandler: () => void) {
     let index = 0;
-    
+
     /**
      * Recursive next function that processes middleware one by one
      * Each middleware must call next() to continue the chain
@@ -111,7 +123,7 @@ export class HomaApp {
         finalHandler();
       }
     };
-    
+
     // Start the middleware chain execution
     await next();
   }
