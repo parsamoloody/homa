@@ -1,5 +1,12 @@
+// Import the main application class
 import { HomaApp } from '@core/index';
-export { bodyParser } from '@middleware'
-export { Request } from '@core/request'
-export { Response } from '@core/response'
+
+// Re-export all middleware functions
+export * from '@middleware';
+
+// Re-export core Request and Response classes
+export * from '@core/request';
+export * from '@core/response';
+
+// Export HomaApp as the default export
 export default HomaApp;
