@@ -80,7 +80,7 @@ export class Router {
    */
   private matchPath(routePath: string, requestPath: string): boolean {
     const routeParts = routePath.split('/');
-    const requestParts = requestPath.split('/');
+    const requestParts = requestPath.split('?')[0].split('/');
 
     if (routeParts.length !== requestParts.length) return false;
 
@@ -98,7 +98,7 @@ export class Router {
   private extractParams(routePath: string, requestPath: string): Record<string, string> {
     const params: Record<string, string> = {};
     const routeParts = routePath.split('/');
-    const requestParts = requestPath.split('/');
+    const requestParts = requestPath.split('?')[0].split('/');
     routeParts.forEach((part, i) => {
       if (part.startsWith(':')) {
         params[part.slice(1)] = requestParts[i];
