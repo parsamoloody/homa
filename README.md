@@ -126,13 +126,7 @@ app.setGlobalPrefix(['api', 'v1']);
 
 With the example above, a route registered as `/users` will be matched as `/api/v1/users`.
 
-### Notes
-
-- Accepts either a `string` or a `string[]` of path segments (joined with `/`)
-- Leading and trailing slashes are automatically stripped, so you don't need to worry about double slashes (`/api/` or `['api', '']` are both handled safely)
-
-
-## Middleware
+## Middlewares
 
 These body parsing middleware automatically extract and parse incoming request data (JSON, URL-encoded, multipart, or plain text) based on the Content-Type header, then attach the parsed data to req.body for easy access in route handlers. They also enforce size limits to prevent large payload attacks and handle parsing errors gracefully.
 
@@ -145,4 +139,80 @@ The framework provides built-in middleware to parse incoming request bodies. Mid
 app.use(jsonParser({ limit: 1024 * 1024 })); // Parse JSON bodies up to 1MB
 app.use(urlencodedParser()); // Parse URL-encoded form data
 ```
+### Query Parser Middleware
 
+Parses and transforms URL query parameters with support for nested objects (dot notation), arrays, and automatic type conversion (numbers and booleans). The parsed result is attached to `req.query` for easy access in route handlers.
+
+```typescript
+app.use(queryParser()); // Enable query parsing with default options
+
+// URL: /users?name=John&age=25&tags[]=dev&address.city=NYC
+app.get('/users', (req, res) => {
+  console.log(req.query); // { name: "John", age: 25, tags: ["dev"], address: { city: "NYC" } }
+});
+```
+
+with complex request URI
+```typescript
+// Complex URL: /api/users?filters[role]=admin&filters[active]=true&sort=age&order=desc&fields[]=name&fields[]=email&page=2&limit=10
+app.get('/api/users', (req, res) => {
+  // req.query automatically parsed into nested object structure:
+  const { filters, sort, order, fields, page, limit } = req.query;
+  
+  // Easily access nested properties
+  console.log(filters.role);    // "admin"
+  console.log(filters.active);  // true (auto-converted to boolean)
+  console.log(fields);           // ["name", "email"] (array)
+  console.log(page);            // 2 (auto-converted to number)
+  
+  const users = fetchUsers({ filters, sort, order, fields, page, limit });
+  res.json(users);
+});
+```
+#### Query Parser Options
+
+Customize query parsing behavior using the following options:
+
+##### Available Options
+
+- **`allowDots`** (default: `true`) - Convert dot notation to nested objects  
+  `?user.name=John&user.age=25` → `{ user: { name: "John", age: 25 } }`
+
+- **`allowArrays`** (default: `true`) - Parse array syntax  
+  `?ids[]=1&ids[]=2` → `{ ids: ["1", "2"] }`
+
+- **`parseNumbers`** (default: `true`) - Auto-convert numeric strings to numbers  
+  `?page=2&limit=10` → `{ page: 2, limit: 10 }`
+
+- **`parseBooleans`** (default: `true`) - Auto-convert 'true'/'false' to booleans  
+  `?active=true&admin=false` → `{ active: true, admin: false }`
+
+- **`decodeURIComponent`** (default: `true`) - Decode URI-encoded characters  
+  `?name=John%20Doe` → `{ name: "John Doe" }`
+
+##### Custom Configuration
+
+```typescript
+// Disable type conversion, keep everything as strings
+app.use(queryParser({
+  parseNumbers: false,
+  parseBooleans: false
+}));
+
+// Enable dot notation and arrays only
+app.use(queryParser({
+  allowDots: true,
+  allowArrays: true,
+  parseNumbers: false,
+  parseBooleans: false
+}));
+
+// Strict parsing - no transformations
+app.use(queryParser({
+  allowDots: false,
+  allowArrays: false,
+  parseNumbers: false,
+  parseBooleans: false,
+  decodeURIComponent: false
+}));
+```
