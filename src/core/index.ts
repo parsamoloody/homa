@@ -5,7 +5,7 @@ import { Router } from '@core/router';
 
 export class HomaApp {
   private router: Router;
-  private middlewares: Array<(req: Request, res: Response, next: () => void) => void> = [];
+  private _middlewares: Middleware[] = [];
 
   /**sets the global prefix applied to all routes */
   setGlobalPrefix!: Router['setGlobalPrefix'];
@@ -14,9 +14,9 @@ export class HomaApp {
    * Constructor initializes a new Router instance
    */
   constructor() {
-    
+
     this.router = new Router();
-    
+
     for (const method of Router.publicMethods) {
       (this as any)[method] = (this.router[method] as Function).bind(this.router);
     }
@@ -28,7 +28,7 @@ export class HomaApp {
    * @param middleware - Function that receives req, res, and next callback
    */
   use(middleware: (req: Request, res: Response, next: () => void) => void) {
-    this.middlewares.push(middleware);
+    this._middlewares.push(middleware);
   }
 
   /**
@@ -88,39 +88,12 @@ export class HomaApp {
     const server = http.createServer(async (req, res) => {
       const request = new Request(req);
       const response = new Response(res);
-
-      await this.runMiddlewares(request, response, () => {
+      const middleware = this.router.runMiddlewares.bind(this._middlewares);
+      await middleware(request, response, () => {
         this.router.handle(request, response);
       });
     });
 
     server.listen(port, callback);
-  }
-
-  /**
-   * Execute all registered middleware functions in sequence
-   * Each middleware calls next() to proceed to the next middleware or final handler
-   * @param req - Request object passed through middleware chain
-   * @param res - Response object passed through middleware chain
-   * @param finalHandler - Function to execute after all middleware complete
-   */
-  private async runMiddlewares(req: Request, res: Response, finalHandler: () => void) {
-    let index = 0;
-
-    /**
-     * Recursive next function that processes middleware one by one
-     * Each middleware must call next() to continue the chain
-     */
-    const next = async () => {
-      if (index < this.middlewares.length) {
-        const middleware = this.middlewares[index++];
-        await middleware(req, res, next);
-      } else {
-        finalHandler();
-      }
-    };
-
-    // Start the middleware chain execution
-    await next();
   }
 }
