@@ -216,3 +216,69 @@ app.use(queryParser({
   decodeURIComponent: false
 }));
 ```
+## MVC Pattern Support
+
+Homa Framework follows the MVC (Model-View-Controller) pattern by separating concerns:
+
+- **Routes** - Define URL endpoints and map them to controllers
+- **Controllers** - Handle business logic, process requests, and return responses
+- **Models** - Manage data operations, database interactions, and business rules
+
+### Example: MVC Structure
+
+```typescript
+// 1. Model - Data layer
+// src/models/UserModel.ts
+export class UserModel {
+  private users = [{ id: 1, name: 'John Doe', email: 'john@example.com' }];
+  
+  findAll() { return this.users; }
+  findById(id: number) { return this.users.find(u => u.id === id); }
+  create(data: any) { /* save to database */ }
+}
+
+// 2. Controller - Business logic
+// src/controllers/UserController.ts
+import { Request, Response } from '@core/request';
+import { UserModel } from '@models/UserModel';
+
+export class UserController {
+  private userModel = new UserModel();
+
+  getAll = (req: Request, res: Response) => {
+    const users = this.userModel.findAll();
+    res.json({ success: true, data: users });
+  };
+
+  getById = (req: Request, res: Response) => {
+    const user = this.userModel.findById(parseInt(req.params.id));
+    user ? res.json({ success: true, data: user }) 
+         : res.status(404).json({ error: 'User not found' });
+  };
+}
+
+// 3. Routes - URL mapping
+// src/routes/user.routes.ts
+import { Router } from '@core/router';
+import { UserController } from '@controllers/UserController';
+
+const userController = new UserController();
+
+export function userRoutes(router: Router) {
+  router.get('/users', userController.getAll);
+  router.get('/users/:id', userController.getById);
+  router.post('/users', userController.create);
+  router.put('/users/:id', userController.update);
+  router.delete('/users/:id', userController.delete);
+}
+
+// 4. App - Register routes and start server
+// src/server.ts
+import HomaApp from '@core/homa';
+import { userRoutes } from './routes/user.routes';
+
+const app = new HomaApp();
+userRoutes(app.getRouter());
+
+app.listen(3000);
+```
