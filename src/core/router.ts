@@ -1,8 +1,6 @@
-// src/core/router.ts
 import { METHODS, Request } from '@core/request';
 import { Response } from '@core/response';
 
-// Route handler functions that accept Request and Response objects
 type RouteHandler = (req: Request, res: Response) => void;
 
 export type Middleware = (req: Request, res: Response, next: () => void) => void;
@@ -18,7 +16,6 @@ interface Route {
 type GlobalPrefix = string | null;
 
 export class Router {
-  // Internal storage for all registered routes
   private _routes: Route[] = [];
   private _globalPrefix: GlobalPrefix = null;
 
@@ -32,8 +29,11 @@ export class Router {
     'delete'
   ] as const;
 
-  /**
-   * Register a new route with the router
+  /* Register a new route with the router
+   * @param method - HTTP method for the route(GET, POST, ege)
+   * @param path - URL path pattern (supports :param syntax)
+   * @param handler - Function to handle matching requests
+   * @param middlewares(optional) - Function to handle middlewares
    */
   addRoute(method: METHODS, path: string, handler: RouteHandler, middlewares?: Middleware | Middleware[]) {
     const fullPath = this.fullPath(path);
@@ -109,28 +109,26 @@ export class Router {
     }
   }
 
+
   /**
-   * Set the global prefix applied to all registered routes
-   */
+ * Set the global prefix applied to all registered routes
+ * Accepts a single string or an array of path segments, joined with '/'
+ * Leading and trailing slashes are stripped to prevent double slashes when concatenated with route paths
+ * @param prefix - Prefix as a string (e.g. 'api') or array of segments (e.g. ['api', 'v1'])
+ */
   setGlobalPrefix(prefix: string | string[]) {
     const joined = Array.isArray(prefix) ? prefix.join('/') : prefix;
     this._globalPrefix = joined.replace(/^\/+|\/+$/g, '');
   }
 
-  /**
-   * Get full path with global prefix
-   */
-  private fullPath = (routePath: string) => 
+  // Get full path with global prefix
+  private fullPath = (routePath: string) =>
     this._globalPrefix ? `/${this._globalPrefix}${routePath}` : routePath;
 
-  /**
-   * Trim leading and trailing slashes
-   */
+  // Trim leading and trailing slashes
   private trimSlashes = (path: string) => path.replace(/^\/|\/$/g, '');
 
-  /**
-   * Check if a request path matches a route path pattern
-   */
+  // Check if a request path matches a route path pattern
   private matchPath(routePath: string, requestPath: string): boolean {
     const routeParts = routePath.split('/');
     const requestParts = requestPath.split('?')[0].split('/');
@@ -142,9 +140,7 @@ export class Router {
     );
   }
 
-  /**
-   * Extract dynamic parameters from a matched route path
-   */
+  // Extract dynamic parameters from a matched route path
   private extractParams(routePath: string, requestPath: string): Record<string, string> {
     const params: Record<string, string> = {};
     const routeParts = routePath.split('/');

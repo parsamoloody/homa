@@ -8,7 +8,6 @@ export class HomaApp {
   private router: Router;
   private _middlewares: Middleware[] = [];
 
-  // Delegated Router methods
   setGlobalPrefix!: Router['setGlobalPrefix'];
   get!: Router['get'];
   post!: Router['post'];
@@ -19,7 +18,6 @@ export class HomaApp {
   constructor() {
     this.router = new Router();
 
-    // Delegate all Router methods to HomaApp
     for (const method of Router.publicMethods) {
       (this as any)[method] = (this.router[method] as Function).bind(this.router);
     }
@@ -27,13 +25,15 @@ export class HomaApp {
 
   /**
    * Register a middleware function that will be executed for every request
+   * Middleware can modify request/response objects or end the response early
+   * @param middleware - Function that receives req, res, and next callback
    */
   use(middleware: (req: Request, res: Response, next: () => void) => void) {
     this._middlewares.push(middleware);
   }
 
   /**
-   * Get the router instance for advanced usage
+   * Get the router instance
    */
   getRouter(): Router {
     return this.router;
@@ -41,6 +41,10 @@ export class HomaApp {
 
   /**
    * Start the HTTP server on the specified port
+   * Creates a server instance, processes every request through middleware chain,
+   * then routes to the appropriate handler
+   * @param port - Port number to listen on
+   * @param callback - Optional callback executed when server starts listening
    */
   listen(port: number, callback?: () => void) {
     const server = http.createServer(async (req, res) => {
