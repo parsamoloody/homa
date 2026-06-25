@@ -8,6 +8,12 @@ export class HomaApp {
   private router: Router;
   private _middlewares: Middleware[] = [];
 
+  /**
+* Set the global prefix applied to all registered routes
+* Accepts a single string or an array of path segments, joined with '/'
+* Leading and trailing slashes are stripped to prevent double slashes when concatenated with route paths
+* @param prefix - Prefix as a string (e.g. 'api') or array of segments (e.g. ['api', 'v1'])
+*/
   setGlobalPrefix!: Router['setGlobalPrefix'];
   get!: Router['get'];
   post!: Router['post'];
