@@ -23,7 +23,7 @@ export class HomaApp {
 
   constructor() {
     this.router = new Router();
-
+    // bind the global methods
     for (const method of Router.publicMethods) {
       (this as any)[method] = (this.router[method] as Function).bind(this.router);
     }
